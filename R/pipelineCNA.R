@@ -25,13 +25,14 @@ NULL
 #' @param AdditionalGeneSets list of additional signatures of normal cell types (optional)
 #' @param SCEVANsignatures FALSE if you only want to use only the signatures specified in AdditionalGeneSets (default TRUE)
 #' @param organism Organism to be analysed (optional - "mouse" or "human" - default "human")
+#' @param logTransform Boolean value TRUE to apply Log-Freeman–Tukey transformation or FALSE to skip Log transformation if the data is already transformed (default TRUE)
 #'
 #' @return
 #' @export
 #'
 #' @examples res_pip <- pipelineCNA(count_mtx)
 
-pipelineCNA <- function(count_mtx, sample="", par_cores = 20, norm_cell = NULL, SUBCLONES = TRUE, beta_vega = 0.5, ClonalCN = TRUE, plotTree = TRUE, AdditionalGeneSets = NULL, SCEVANsignatures = TRUE, organism = "human"){
+pipelineCNA <- function(count_mtx, sample="", par_cores = 20, norm_cell = NULL, SUBCLONES = TRUE, beta_vega = 0.5, ClonalCN = TRUE, plotTree = TRUE, AdditionalGeneSets = NULL, SCEVANsignatures = TRUE, organism = "human", logTransform = TRUE){
   
   dir.create(file.path("./output"), showWarnings = FALSE)
   
@@ -39,7 +40,7 @@ pipelineCNA <- function(count_mtx, sample="", par_cores = 20, norm_cell = NULL, 
   
   normalNotKnown <- length(norm_cell)==0
   
-  res_proc <- preprocessingMtx(count_mtx,sample, par_cores=par_cores, findConfident = normalNotKnown, AdditionalGeneSets = AdditionalGeneSets, SCEVANsignatures = SCEVANsignatures, organism = organism)
+  res_proc <- preprocessingMtx(count_mtx,sample, par_cores=par_cores, findConfident = normalNotKnown, AdditionalGeneSets = AdditionalGeneSets, SCEVANsignatures = SCEVANsignatures, organism = organism, logTransform = logTransform)
   
   if(normalNotKnown) norm_cell <- names(res_proc$norm_cell)
 
