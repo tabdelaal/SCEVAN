@@ -53,6 +53,7 @@ annotateGenes <- function(mtx, organism = "human"){
 #' @param findConfident Boolean value to search for normal cells (default TRUE)
 #' @param AdditionalGeneSets List of additional signatures to be used to search for normal cells (optional)
 #' @param SCEVANsignatures Boolean value TRUE to use internal SCEVAN signatures for normal cells or FALSE to use only signatures specified in AdditionalGeneSets (default TRUE)
+#' @param logTransform Boolean value TRUE to apply Log-Freeman–Tukey transformation or FALSE to skip Log transformation if the data is already transformed (default TRUE)
 #'
 #' @return 
 #' count_mtx_smooth processed and smoothed matrix
@@ -61,7 +62,7 @@ annotateGenes <- function(mtx, organism = "human"){
 #' @examples
 #' count_mtx_annot <- annotateGenes(count_mtx)
 #' @export
-preprocessingMtx <- function(count_mtx, sample, ngenes_chr=5, perc_genes=0.1, par_cores=20, findConfident = TRUE, AdditionalGeneSets = NULL, SCEVANsignatures = TRUE, organism = "human"){
+preprocessingMtx <- function(count_mtx, sample, ngenes_chr=5, perc_genes=0.1, par_cores=20, findConfident = TRUE, AdditionalGeneSets = NULL, SCEVANsignatures = TRUE, organism = "human", logTransform = TRUE){
   
   set.seed(123)
   
@@ -152,16 +153,24 @@ preprocessingMtx <- function(count_mtx, sample, ngenes_chr=5, perc_genes=0.1, pa
   
   if((ncol(count_mtx_annot)-5)<15) stop("Bad sample low cells < 15")
   
-  print("6) Log Freeman Turkey transformation")
+  if(logTransform){
+    print("6) Log Freeman Turkey transformation")
   
-  count_mtx_proc <- data.matrix(count_mtx_annot[, 6:ncol(count_mtx_annot)])
-  count_mtx_annot <- count_mtx_annot[, 1:5]
-  count_mtx_norm <- log(sqrt(count_mtx_proc)+sqrt(count_mtx_proc+1))
-  count_mtx_norm <- apply(count_mtx_norm,2,function(x)(x <- x-mean(x)))
-  colnames(count_mtx_norm) <-  colnames(count_mtx_proc)
-  rm(count_mtx_proc)
+    count_mtx_proc <- data.matrix(count_mtx_annot[, 6:ncol(count_mtx_annot)])
+    count_mtx_annot <- count_mtx_annot[, 1:5]
+    count_mtx_norm <- log(sqrt(count_mtx_proc)+sqrt(count_mtx_proc+1))
+    count_mtx_norm <- apply(count_mtx_norm,2,function(x)(x <- x-mean(x)))
+    colnames(count_mtx_norm) <-  colnames(count_mtx_proc)
+    rm(count_mtx_proc)
   
-  print(paste("A total of ", ncol(count_mtx_norm), " cells, ", nrow(count_mtx_norm), " genes after preprocessing", sep=""))
+    print(paste("A total of ", ncol(count_mtx_norm), " cells, ", nrow(count_mtx_norm), " genes after preprocessing", sep=""))
+  }
+  else{
+    print("6) Skip Log transformation")
+    
+    count_mtx_norm <- data.matrix(count_mtx_annot[, 6:ncol(count_mtx_annot)])
+  }
+  
   
   rownames(count_mtx_norm) <- count_mtx_annot$gene_name
   
